@@ -3,14 +3,14 @@ import misc
 class player:
 	# A class for the players
 	
-	def __init__(self, name, nextTo):
+	def __init__(self, name):
 		self.name = name
 		self.hand = []
 		self.lead = False
 		self.dealer = False
 		self.called = False
-		self.toLeftOf = nextTo
 		self.desiredTrump = 'squares'
+		self.tricksWon = 0
 	
 	def callTrump(self, topOfKitty, iter):
 		suits = []
@@ -43,7 +43,7 @@ class player:
 		for card in self.hand:
 			if card.value < lowest.value and not card.trump:
 				lowest = card
-		print("Lowest card is %d of %s" %(lowest.value, lowest.suit)) 
+		#print("Lowest card is %d of %s" %(lowest.value, lowest.suit)) 
 		return lowest
     
 	def highestOffSuit(self):
@@ -66,6 +66,7 @@ class player:
 		return highest
 	
 	def playCard(self, cardsPlayed, trump):
+		canFollow = False
 		if cardsPlayed:
 		
 			playable = []

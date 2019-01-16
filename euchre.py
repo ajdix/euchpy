@@ -7,33 +7,20 @@ from misc import *
 
 ################################################################################
 
-player1 = player('Liz', 'Jane')
-player2 = player('Bingham', 'Liz')
-player3 = player('Darcy', 'Bingham')
-player4 = player('Jane', 'Darcy')
-players = [player1, player2, player3, player4]
+liz = player('Liz')
+bingley = player('Bingley')
+darcy = player('Darcy')
+jane = player('Jane')
+
+players = [liz, bingley, darcy, jane]
+
+
 kitten = kitty()
 
-player1.lead = True
-player4.dealer = True
-
-#while (score < 10):
-round1 = round(players, kitten)
-round1.deal()
-
-print("Player's Hands:")
-for player in players:
-	print(player.name)
-	for card in player.hand:
-		
-		print("%s of %s" %(card.value, card.suit))
-	print("\n")
+liz.lead = True
+jane.dealer = True
 
 
-round1.determineTrump()
-round1.playTrick()
+game = round(players, kitten)
 
-#for player in players:
-#	for card in player.hand:
-#		print("%s of %s" %(card.value, card.suit))
-#	print("\n")
+game.playGame()

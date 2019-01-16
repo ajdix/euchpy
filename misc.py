@@ -19,15 +19,26 @@ class kitty:
 	def getTop(self):
 		return self.cards[0]
 		
+class team:
+	def __init__(self, mem1, mem2):
+		self.score = 0
+		self.called = False
+		self.tricks = 0
+		self.mem1 = mem1
+		self.mem2 = mem2
 		
 def findLowest(cards):
+	allTrump = False
 	for card in cards:
 		if not card.trump:
 			lowest = card
 			break
-	if not lowest:
+	try:
+		highest
+	except NameError:
 		allTrump = True
 		lowest = cards[0]
+
 	if not allTrump:
 		for card in cards:
 			if (card.value < lowest.value and not card.trump):
@@ -37,3 +48,25 @@ def findLowest(cards):
 			if (card.value < lowest.value):
 				lowest = card
 	return lowest
+	
+def findHighest(cards):
+	noTrump = False
+	for card in cards:
+		if card.trump:
+			highest = card
+			break
+	try:
+		highest
+	except NameError:
+		noTrump = True
+		highest = cards[0]
+	
+	if noTrump:
+		for card in cards:
+			if (card.value > highest.value):
+				highest = card
+	else:
+		for card in cards:
+			if (card.value > highest.value and card.trump):
+				highest = card
+	return highest
