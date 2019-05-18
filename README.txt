@@ -1,0 +1,1 @@
+Run "euchre.py" from command line. Use -h or --help for help
