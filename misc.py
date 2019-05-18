@@ -5,11 +5,11 @@ class card:
 		self.suit = newSuit #Suit
 		self.value = newValue #Value, 9-A
 		self.trump = False
-		if newValue == 11:
-			if (newSuit == 'diamonds' or newSuit == 'hearts'):
-				self.color = 'red'
-			else:
-				self.color = 'black'
+		self.winPercentage = 0.0
+		if (newSuit == 'diamonds' or newSuit == 'hearts'):
+			self.color = 'red'
+		else:
+			self.color = 'black'
 
 
 class kitty:
@@ -50,23 +50,41 @@ def findLowest(cards):
 	return lowest
 	
 def findHighest(cards):
-	noTrump = False
-	for card in cards:
-		if card.trump:
-			highest = card
-			break
-	try:
-		highest
-	except NameError:
-		noTrump = True
-		highest = cards[0]
+	# noTrump = False
+	# for card in cards:
+		# if card.trump:
+			# highest = card
+			# break
+	# try:
+		# highest
+	# except NameError:
+		# noTrump = True
+		# highest = cards[0]
 	
-	if noTrump:
-		for card in cards:
-			if (card.value > highest.value):
+	# if noTrump:
+		# for card in cards:
+			# if (card.value > highest.value):
+				# highest = card
+	# else:
+		# for card in cards:
+			# if (card.value > highest.value and card.trump):
+				# highest = card
+				
+				
+	ledSuit = cards[0].suit
+	ledTrump = cards[0].trump
+	
+	highest = cards[0]
+	for card in cards:
+		if card.suit is ledSuit:
+			if (card.value > highest.value and not highest.trump):
 				highest = card
-	else:
-		for card in cards:
-			if (card.value > highest.value and card.trump):
+			elif ledTrump and (card.value > highest.value):
+				highest = card
+		elif card.trump and card.suit is not ledSuit:
+			if highest.trump:
+				if card.value > highest.value:
+					highest = card
+			else:
 				highest = card
 	return highest

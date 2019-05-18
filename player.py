@@ -13,30 +13,112 @@ class player:
 		self.tricksWon = 0
 	
 	def callTrump(self, topOfKitty, iter):
-		suits = []
-		for card in self.hand:
-			suits.append(card.suit)
-		sortedSuits = Counter(suits).most_common()
 		
-		#print(self.name)
-		#print(sortedSuits)
-		#print("\n")
+		trumpValues = []
+		with open("card_values.txt", "r") as wylie:
+			for line in wylie.readlines():
+				raw_line = line.strip().split()
+				trumpValues.append(misc.card(raw_line[0], int(raw_line[2])))
+				trumpValues[-1].winPercentage = float(raw_line[-1])
 		
-		if sortedSuits[0][1] > 2: #call Trump
-			self.desiredTrump = sortedSuits[0][0]
-			call = True
-		else:
-			self.desiredTrump = sortedSuits[0][0]
-			call = False
+		#trumpValues = {9: 0.2, 10: 0.2, 12: 0.35, 13: 0.6, 14: 0.6, 11: 1.0}
+		numSuit = 0
+		suitsInHand = []
+		if iter == 1:
+			predictedTricksWon = 0
+			for card in self.hand:
+				if card.suit not in suitsInHand: suitsInHand.append(card.suit)
+				if card.color == topOfKitty.color:
+					if card.suit == topOfKitty.suit:
+						numSuit += 1
+						[thing for thing in trumpValues if (thing.suit == 'trump') and (thing.value == card.value)][0].winPercentage
+					elif card.value == 11:
+						
+						predictedTricksWon += [thing for thing in trumpValues if (thing.suit == 'trump') and (thing.value == 15)][0].winPercentage
+					else:
+						predictedTricksWon += [thing for thing in trumpValues if (thing.suit == 'notTrumpSameColor') and (thing.value == card.value)][0].winPercentage
+				else:
+					predictedTricksWon += [thing for thing in trumpValues if (thing.suit == 'notTrumpOffColor') and (thing.value == card.value)][0].winPercentage
+			
+			# Count pick up
+			if self.dealer:
+				numSuit += 1
+				predictedTricksWon += [thing for thing in trumpValues if (thing.suit == 'trump') and (thing.value == topOfKitty.value)][0].winPercentage
+			
+			# Adjust for a lot of trump
+			if numSuit == 3: 
+				predictedTricksWon += 0.5
+			elif numSuit == 4:
+				predictedTricksWon += 2.
+				
+			# Adjust for 2 suited
+			if len(suitsInHand) <= 2:
+				predictedTricksWon += 1.
+			elif len(suitsInHand) == 4:
+				predictedTricksWon += -0.5
+			
+			if predictedTricksWon >= 3.0:
+				self.desiredTrump == topOfKitty.suit
+				#print("Pick it up!")
+				#if self.dealer: print("I'm the dealer, I get the %d of %s" %(topOfKitty.value, topOfKitty.suit))
+				#for car in self.hand:
+				#	print("%d of %s" %(car.value, car.suit))
+				#print("Call %s, expect %f tricks" %(self.desiredTrump, predictedTricksWon))
+				return True
+			else:
+				return False
 		
-		if self.desiredTrump == topOfKitty.suit and call:
-			return True
-		elif (iter == 2 and call is True):
-			return True
-		elif (iter ==2 and self.dealer):
-			return True
-		else:
-			return False
+		elif iter == 2:
+			predictedTricksWon = {'spades': 0., 'clubs': 0., 'diamonds': 0., 'hearts': 0.}
+			
+			for card in self.hand:
+				if card.suit not in suitsInHand: suitsInHand.append(card.suit)
+			
+			for dummy in [misc.card('spades', 0), misc.card('clubs', 0), misc.card('diamonds', 0), misc.card('hearts', 0)]:
+				numSuit = 0
+				for card in self.hand:
+					if card.color == dummy.color:
+						if card.suit == dummy.suit:
+							predictedTricksWon[dummy.suit] += [thing for thing in trumpValues if (thing.suit == 'trump') and (thing.value == card.value)][0].winPercentage
+							numSuit += 1
+						elif card.value == 11:
+							predictedTricksWon[dummy.suit] += [thing for thing in trumpValues if (thing.suit == 'trump') and (thing.value == 15)][0].winPercentage
+							numSuit += 1
+						elif card.value == 14:
+							predictedTricksWon[dummy.suit] += [thing for thing in trumpValues if (thing.suit == 'notTrumpSameColor') and (thing.value == card.value)][0].winPercentage
+					elif card.value == 14:
+						predictedTricksWon[dummy.suit] += [thing for thing in trumpValues if (thing.suit == 'notTrumpOffColor') and (thing.value == card.value)][0].winPercentage
+				
+				# Adjust for lots of trump
+				if numSuit == 3: 
+					predictedTricksWon[dummy.suit] += 0.5
+				elif numSuit == 4:
+					predictedTricksWon[dummy.suit] += 2.
+					
+				# Adjust for two/four suited
+				if len(suitsInHand) <= 2:
+					predictedTricksWon[dummy.suit] += 1.
+				elif len(suitsInHand) == 4:
+					predictedTricksWon[dummy.suit] += -0.5
+					
+			
+			expectedTricks = 0.0
+			for suit, wins in predictedTricksWon.items():
+				if suit != topOfKitty.suit:
+					if wins > expectedTricks:
+						expectedTricks = wins
+						self.desiredTrump = suit
+			
+			if (expectedTricks >= 3.0) or self.dealer:
+				#if self.dealer: 
+					#print("Screwed!")
+				#else:
+				#	for car in self.hand:
+				#		print("%d of %s" %(car.value, car.suit))
+				#	print("Call %s, expect %f tricks" %(self.desiredTrump, expectedTricks))
+				return True
+			else:
+				return False
 			
 	def lowestCard(self):
 		lowest = self.hand[0]
@@ -103,9 +185,9 @@ class player:
 			else:
 				save = playable[0]
 		else:
-			print('%s is leading' %self.name)
+			#print('%s is leading' %self.name)
 			save = self.highestOffSuit()
-			print("Leading highest off suit: %d of %s" %(save.value, save.suit)) 
+			#print("Leading highest off suit: %d of %s" %(save.value, save.suit)) 
 		
 		try:
 			save
