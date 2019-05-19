@@ -57,7 +57,7 @@ class player:
 			elif len(suitsInHand) == 4:
 				predictedTricksWon += -0.5
 			
-			if predictedTricksWon >= 3.0:
+			if predictedTricksWon >= 2.0:
 				self.desiredTrump == topOfKitty.suit
 				#print("Pick it up!")
 				#if self.dealer: print("I'm the dealer, I get the %d of %s" %(topOfKitty.value, topOfKitty.suit))
@@ -109,7 +109,7 @@ class player:
 						expectedTricks = wins
 						self.desiredTrump = suit
 			
-			if (expectedTricks >= 3.0) or self.dealer:
+			if (expectedTricks >= 2.) or self.dealer:
 				#if self.dealer: 
 					#print("Screwed!")
 				#else:
@@ -120,80 +120,87 @@ class player:
 			else:
 				return False
 			
-	def lowestCard(self):
+	def lowestCard(self, trump = 'squares'):
 		lowest = self.hand[0]
 		for card in self.hand:
 			if card.value < lowest.value and not card.trump:
 				lowest = card
+			elif card.value == lowest.value:
+				if card.color == misc.getColor(trump):
+					lowest = card
+					
+			if lowest.trump: # If you have all trump, highest off suit is lowest trump
+				if card.value < lowest.value:
+					lowest = card
 		#print("Lowest card is %d of %s" %(lowest.value, lowest.suit)) 
 		return lowest
     
-	def highestOffSuit(self):
+	def highestOffSuit(self, trump = 'squares'):
 		highest = self.hand[0]
 		for card in self.hand:
 			if card.value > highest.value and not card.trump:
 				highest = card
+			elif card.value == highest.value:
+				if card.color is not misc.getColor(trump):
+					highest = card
+		
+			if highest.trump: # If you have all trump, highest off suit is lowest trump
+				if card.value < highest.value:
+					highest = card
+			
 		return highest
 	
 	def highestCard(self):
-		highestValue = self.hand[0].value
 		highest = self.hand[0]
 		for i, card in enumerate(self.hand):
-			if card.value > highestValue and card.trump:
-				highestValue = card.value
+			if card.value > highest.value and card.trump:
 				highest = card
-				haveTrump = True
-		if not haveTrump:
-			highest = highestOffSuit
+			elif card.value > highest.value and not highest.trump:
+				highest = card
 		return highest
 	
 	def playCard(self, cardsPlayed, trump):
-		canFollow = False
-		if cardsPlayed:
 		
-			playable = []
-			
-			for card in self.hand:
-				if card.suit == cardsPlayed[0].suit:
-					playable.append(card)
-					canFollow = True
-			
-			if len(playable) == 0:
-				for card in self.hand:
-					if card.trump:
-						playable.append(card)
-				if not playable:
-					playable.append(self.lowestCard())
-			
-			if len(playable) > 1:
-			
-				if canFollow:
-					save = misc.findLowest(playable)
-				else:
-					trumper = misc.card(0, 'squares')
-					for card in cardsPlayed:
-						if card.trump and card.value > trumper.value:
-							trumper = card
-					
-					for card in playable:
-						if card.trump:
-							if card.value > trumper.value:
-								save = card
-							else:
-								save = self.lowestCard()
-					
-			else:
-				save = playable[0]
+		if len(cardsPlayed) == 0: # Determine if you're leading
+			save = self.highestOffSuit(trump)
+			if save.trump: # Don't lead the 9 of trump
+				save = self.highestCard()
 		else:
-			#print('%s is leading' %self.name)
-			save = self.highestOffSuit()
-			#print("Leading highest off suit: %d of %s" %(save.value, save.suit)) 
-		
-		try:
-			save
-		except NameError:
-			print("Playing algorithm failed for %s" %self.name)
-			save = self.lowestCard()
+			ledSuit = cardsPlayed[0].suit
+			onSuit = []
+			for card in self.hand:
+				if card.suit == ledSuit:
+					onSuit.append(card)
+			
+			# Check if your partner is winning
+			if len(cardsPlayed) > 2:
+				if (cardsPlayed.index(misc.findHighest(cardsPlayed)) % 2 == (len(cardsPlayed) % 2)): # Partner is winning
+					if len(onSuit) > 0:
+						save = misc.findLowest(onSuit)
+					else:	
+						save = self.lowestCard(trump)
+				else: # Partner is losing
+					if len(onSuit) > 0:
+						save = onSuit[0]
+						for card in onSuit:
+							if card.value > save.value:
+								save = card
+						if save.value < misc.findHighest(cardsPlayed).value:
+							save = self.lowestCard(trump)
+					else:
+						save = self.highestCard()
+						if not save.trump:
+							save = self.lowestCard(trump)
+			else: # Just win the trick if possible
+				if len(onSuit) > 0:
+					save = onSuit[0]
+					for card in onSuit:
+						if card.value > save.value:
+							save = card
+				else:
+					save = self.highestCard()
+					if not save.trump:
+						save = self.lowestCard(trump)
 		
 		self.hand.remove(save)
 		return save

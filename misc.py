@@ -6,10 +6,7 @@ class card:
 		self.value = newValue #Value, 9-A
 		self.trump = False
 		self.winPercentage = 0.0
-		if (newSuit == 'diamonds' or newSuit == 'hearts'):
-			self.color = 'red'
-		else:
-			self.color = 'black'
+		self.color = getColor(self.suit)
 
 
 class kitty:
@@ -50,26 +47,6 @@ def findLowest(cards):
 	return lowest
 	
 def findHighest(cards):
-	# noTrump = False
-	# for card in cards:
-		# if card.trump:
-			# highest = card
-			# break
-	# try:
-		# highest
-	# except NameError:
-		# noTrump = True
-		# highest = cards[0]
-	
-	# if noTrump:
-		# for card in cards:
-			# if (card.value > highest.value):
-				# highest = card
-	# else:
-		# for card in cards:
-			# if (card.value > highest.value and card.trump):
-				# highest = card
-				
 				
 	ledSuit = cards[0].suit
 	ledTrump = cards[0].trump
@@ -88,3 +65,11 @@ def findHighest(cards):
 			else:
 				highest = card
 	return highest
+	
+def getColor(suit):
+	if (suit == "diamonds") or (suit == "hearts"):
+		return "red"
+	elif (suit == "clubs") or (suit == "spades"):
+		return "black"
+	else:
+		return "green" # For some reason
